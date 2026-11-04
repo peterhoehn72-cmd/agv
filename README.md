@@ -1,29 +1,31 @@
-# AGV Repository Structure
+# Mecanum-wheel AGV
 
-This repository contains the software and firmware for a small autonomous mobile robot based on mecanum wheels.
+This repository documents the hardware, firmware, and planned ROS 2 software for a small autonomous mobile robot based on mecanum wheels. Chassis construction, motor-driver wiring, and open-loop motor bring-up are complete. LiDAR and IMU bring-up, feedback control, and ROS 2 integration remain pending.
 
 See the [project documentation](docs/README.md) for the bill of materials, electronics, and mechanical files. [Licensing](LICENSING.md) explains the licenses for original code, documentation, and hardware designs; [third-party notices](THIRD_PARTY_NOTICES.md) cover upstream components and source artwork credits.
 
-The project is expected to evolve over time. This document therefore describes the **initial architecture and intended separation of responsibilities**, rather than a fixed final design. Update it whenever major architectural decisions change.
+This is an active development project. This document records the current baseline and intended architecture; planned components are identified below and will be updated as implementation progresses.
 
 ## 1. System Overview
 
-The system is split across two main compute targets:
+The intended system is split across two main compute targets. The responsibilities below describe the target architecture; only the Pico motor-driver example has been validated on the robot so far.
 
 - **Raspberry Pi 3 B**
-  - Runs ROS 2 Humble.
-  - Interfaces with the LD19 LiDAR.
-  - Receives IMU and low-level state information from the microcontroller.
-  - Runs state estimation and higher-level robot software.
+  - Will run ROS 2 Humble.
+  - Will interface with the LD19 LiDAR (bring-up pending).
+  - Will receive IMU measurements and low-level status from the microcontroller.
+  - Will run state estimation and higher-level robot software.
 
 - **Raspberry Pi Pico**
   - Runs standalone embedded firmware.
-  - Interfaces with the IMU.
-  - Executes low-level motor control.
-  - Communicates with the Raspberry Pi 3 through a custom protocol.
+  - Controls the motors through two L298N drivers; open-loop bring-up is complete.
+  - Will interface with the BMI160 IMU (bring-up pending).
+  - Will communicate with the Raspberry Pi 3 through a custom protocol.
   - Does not depend on ROS 2.
 
 Development and initial testing of the ROS stack is performed on an **Ubuntu 22.04 laptop with ROS 2 Humble**. The same ROS source tree should later be buildable directly on the Raspberry Pi.
+
+The sensing hardware consists of the LD19 LiDAR and BMI160 IMU. The current platform has no wheel encoders. Motor control currently applies open-loop PWM commands; the feedback strategy will be developed alongside robot-state estimation.
 
 The intended high-level architecture is:
 
@@ -65,39 +67,43 @@ UART is currently the preferred communication interface between the Raspberry Pi
 
 ## 2. Repository Structure
 
-The intended starting structure is:
+The current published structure is:
 
 ```text
 agv/
 │
 ├── README.md
+├── LICENSE
+├── LICENSES/
+├── LICENSING.md
+├── THIRD_PARTY_NOTICES.md
 │
 ├── firmware/
 │   └── pico/
-│       ├── imu/
-│       ├── motor_control/
-│       ├── communication/
-│       └── ...
+│       └── examples/
+│           └── motor-driver-test/
+│               ├── motor_driver_bringup.c
+│               ├── CMakeLists.txt
+│               ├── pico_sdk_import.cmake
+│               └── README.md
 │
 ├── ros2_ws/
 │   └── src/
-│       ├── ldlidar_ros2/
-│       ├── agv_hardware/
-│       ├── agv_state_estimation/
-│       ├── agv_interfaces/
-│       ├── agv_bringup/
-│       └── ...
-│
-├── tools/
-│   ├── analysis/
-│   ├── calibration/
-│   └── ...
+│       └── ldlidar_ros2/          # Git submodule
 │
 └── docs/
-    └── ...
+    ├── README.md
+    ├── development/
+    │   └── progress.md
+    └── hardware/
+        ├── bill-of-materials.md
+        ├── electronics/
+        └── mechanics/
 ```
 
-Not all directories or packages need to exist immediately. They should be added when their functionality is implemented.
+The motor test is the first Pico example; IMU bring-up is pending. Future Pico hardware experiments and calibration files are intended for `firmware/experiments/`, added when that work begins. Reusable firmware modules for sensing, motor control, and communication will be introduced as their responsibilities become clear.
+
+The ROS packages described below, apart from the existing `ldlidar_ros2` submodule, are planned and do not yet exist. A separate top-level `tools/` directory can be introduced if shared host-side tooling is needed.
 
 ---
 
@@ -122,7 +128,9 @@ Initial upstream source:
 
 This package provides the interface between the physical LiDAR and ROS 2.
 
-### `agv_hardware`
+The upstream driver has been added as a Git submodule; local LiDAR bring-up and measurement validation are pending.
+
+### `agv_hardware` (planned)
 
 Hardware abstraction between ROS 2 and the Pico.
 
@@ -132,7 +140,7 @@ Responsibilities are expected to include:
 - packet serialization/deserialization
 - communication error handling
 - receiving IMU measurements
-- receiving motor/encoder state
+- receiving motor-command status and low-level fault information
 - sending low-level commands
 - converting embedded data into appropriate ROS messages
 
@@ -140,7 +148,7 @@ The goal is to isolate the custom Pi ↔ Pico protocol here.
 
 Higher-level ROS nodes should not need to know how the Pico communication works.
 
-### `agv_state_estimation`
+### `agv_state_estimation` (planned)
 
 Robot state-estimation package.
 
@@ -148,19 +156,18 @@ Expected inputs include:
 
 - LiDAR-derived information
 - IMU measurements
-- potentially wheel odometry
 
 The exact estimator architecture is still under development.
 
 Initial investigations include probabilistic fusion of LiDAR and IMU measurements and analysis of the measurement/innovation distributions.
 
-### `agv_interfaces`
+### `agv_interfaces` (planned)
 
 Custom ROS messages, services, or actions that are specific to this robot.
 
 This package should only be introduced where standard ROS interfaces are insufficient.
 
-### `agv_bringup`
+### `agv_bringup` (planned)
 
 System-level configuration and launch files.
 
@@ -188,13 +195,15 @@ firmware/pico/
 
 contains software running on the Raspberry Pi Pico.
 
+Standalone bring-up examples currently live in `firmware/pico/examples/`. Future hardware experiments and calibration files will be collected under `firmware/experiments/`; IMU acquisition and the integrated firmware are not yet implemented.
+
 The [motor driver bring-up example](firmware/pico/examples/motor-driver-test/README.md) has been built and successfully exercised on the robot. The Pico-to-L298N pin assignments have been validated against the physical wiring. The example documents the current open-loop motor tests, hardware observations, dependencies, and build/flash instructions; feedback control and host communication remain planned work.
 
 The Pico is deliberately treated as an **independent embedded subsystem rather than as part of the ROS workspace**.
 
-The initial responsibilities are:
+The intended integrated firmware responsibilities are:
 
-### IMU acquisition
+### IMU acquisition (pending bring-up)
 
 - configure the IMU
 - acquire accelerometer/gyroscope measurements
@@ -209,16 +218,15 @@ The Pico handles time-critical, low-level motor functionality.
 Expected responsibilities include:
 
 - motor commands
-- wheel-level control
-- encoder acquisition
+- PWM output and motor direction
 - control-loop execution
 - basic low-level safety behavior
 
-Higher-level motion decisions remain on the Raspberry Pi.
+The current example provides open-loop motor commands. Feedback control is planned, with its architecture to be determined from the LiDAR/IMU state-estimation work. Higher-level motion decisions will remain on the Raspberry Pi.
 
 ### Communication
 
-The Pico and Raspberry Pi communicate using a custom protocol.
+A custom protocol is planned for communication between the Pico and Raspberry Pi.
 
 UART is currently preferred for the physical interface.
 
@@ -233,7 +241,7 @@ IMU / STATE packet
 ├── timestamp
 ├── accelerometer
 ├── gyroscope
-├── encoder/wheel state
+├── motor-command status
 ├── status
 └── checksum / CRC
 ```
@@ -377,8 +385,6 @@ communication protocol
 Raspberry Pi ROS stack
 ```
 
-This is more important than creating separate ROS workspaces for individual functionality.
-
 ### Separate ROS functionality using packages
 
 LiDAR, state estimation, hardware communication, interfaces, and bringup should normally be separate **ROS packages inside one workspace**, rather than separate workspaces.
@@ -401,11 +407,12 @@ Architecture-specific build artifacts should not be committed to Git.
 
 ## 8. Current Project Status
 
-The current hardware baseline includes validated Pico-to-L298N pin assignments and successful four-motor bring-up. Detailed test behavior and observations are recorded in the [motor driver example](firmware/pico/examples/motor-driver-test/README.md).
+The current hardware baseline includes completed chassis construction, validated Pico-to-L298N pin assignments, and successful four-motor bring-up. Detailed test behavior and observations are recorded in the [motor driver example](firmware/pico/examples/motor-driver-test/README.md), with milestones collected in [development progress](docs/development/progress.md). LiDAR and IMU bring-up remain pending.
 
 - [x] Create initial repository structure
 - [ ] Set up ROS 2 workspace
 - [x] Add LD19 ROS 2 driver as a Git submodule
+- [x] Complete chassis construction and motor-driver wiring
 - [x] Validate Pico-to-L298N pin assignments on the robot
 - [x] Build and run the four-motor bring-up firmware on the robot
 - [ ] Test LD19 locally on development laptop
@@ -413,7 +420,7 @@ The current hardware baseline includes validated Pico-to-L298N pin assignments a
 - [ ] Integrate IMU
 - [ ] Design Pico ↔ Pi communication protocol
 - [ ] Implement Pico IMU acquisition
-- [ ] Implement closed-loop wheel control
+- [ ] Implement feedback control using estimated robot motion
 - [ ] Implement ROS hardware interface
 - [ ] Implement state estimation
 - [ ] Deploy ROS stack to Raspberry Pi 3 B
@@ -425,11 +432,10 @@ The current hardware baseline includes validated Pico-to-L298N pin assignments a
 
 The following decisions are intentionally left open:
 
-- exact IMU model and interface
+- BMI160 interface and acquisition configuration
 - final Pi ↔ Pico physical interface (UART currently preferred)
 - communication packet format
 - timestamp synchronization strategy
-- wheel encoder interface
 - motor-control architecture
 - state-estimation architecture
 - LiDAR preprocessing/filtering

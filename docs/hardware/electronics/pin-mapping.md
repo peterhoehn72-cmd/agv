@@ -29,6 +29,6 @@ The active test sets DIR1 high and DIR2 low for every motor. The physical direct
 
 The wiring illustration covers logic signals and omits supply wiring. Pico GND and both driver power grounds share the system reference at battery negative. Pico physical pin 38 is one of its GND pins.
 
-See [power distribution](power-distribution.svg) for the separate supply diagram. The planned Pico supply connection is physical pin 39 (**VSYS**) from the 5 V converter; VSYS is a power input, not a motor-control GPIO. The motor-test code does not configure power distribution.
+See [power distribution](power-distribution.png) for the separate supply diagram. The planned Pico supply connection is physical pin 39 (**VSYS**) from the 5 V converter; VSYS is a power input, not a motor-control GPIO. The motor-test code does not configure power distribution.
 
 These pin assignments have been validated against the physical wiring during successful motor-driver bring-up on the robot. See the [motor driver example](../../../firmware/pico/examples/motor-driver-test/README.md) for the test behavior and hardware observations.

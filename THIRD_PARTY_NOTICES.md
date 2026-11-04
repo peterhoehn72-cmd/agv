@@ -34,14 +34,14 @@ The composite, including added wiring, labels, and layout by Peter Höhn and con
 
 Credit the source creators and the AGV project, preserve the source and license links, and indicate further changes when redistributing or adapting this illustration.
 
-## Embedded Recursive font
+## Recursive typeface
 
-Affected file: [power-distribution.svg](docs/hardware/electronics/power-distribution.svg).
+Affected diagram: [power-distribution.png](docs/hardware/electronics/power-distribution.png).
 
-The SVG embeds font data and preserves the notice:
+The power-distribution diagram uses the Recursive typeface:
 
 > Copyright 2019 The Recursive Project Authors (github.com/arrowtype/recursive)
 
-The embedded font is licensed under the SIL Open Font License, Version 1.1. The full license and copyright notice are included in the SVG and must be preserved when redistributing the embedded font. The font is excluded from the project's hardware design license; its presence does not change the license of the original diagram content.
+The typeface is licensed under the SIL Open Font License, Version 1.1. The current PNG is a raster image and does not embed font software. This credit records the typeface used in the diagram; the original diagram content remains under the project's hardware design license.
 
 Upstream project: [Recursive](https://github.com/arrowtype/recursive). License reference: [SIL Open Font License 1.1](https://openfontlicense.org/open-font-license-official-text/).
