@@ -2,6 +2,8 @@
 
 This repository contains the software and firmware for a small autonomous mobile robot based on mecanum wheels.
 
+See the [project documentation](docs/README.md) for the bill of materials, electronics, and mechanical files. [Licensing](LICENSING.md) explains the licenses for original code, documentation, and hardware designs; [third-party notices](THIRD_PARTY_NOTICES.md) cover upstream components and source artwork credits.
+
 The project is expected to evolve over time. This document therefore describes the **initial architecture and intended separation of responsibilities**, rather than a fixed final design. Update it whenever major architectural decisions change.
 
 ## 1. System Overview
@@ -185,6 +187,8 @@ firmware/pico/
 ```
 
 contains software running on the Raspberry Pi Pico.
+
+The [motor driver bring-up example](firmware/pico/examples/motor-driver-test/README.md) has been built and successfully exercised on the robot. The Pico-to-L298N pin assignments have been validated against the physical wiring. The example documents the current open-loop motor tests, hardware observations, dependencies, and build/flash instructions; feedback control and host communication remain planned work.
 
 The Pico is deliberately treated as an **independent embedded subsystem rather than as part of the ROS workspace**.
 
@@ -397,17 +401,19 @@ Architecture-specific build artifacts should not be committed to Git.
 
 ## 8. Current Project Status
 
-Initial phase:
+The current hardware baseline includes validated Pico-to-L298N pin assignments and successful four-motor bring-up. Detailed test behavior and observations are recorded in the [motor driver example](firmware/pico/examples/motor-driver-test/README.md).
 
-- [ ] Create repository structure
+- [x] Create initial repository structure
 - [ ] Set up ROS 2 workspace
-- [ ] Integrate LD19 ROS 2 driver
+- [x] Add LD19 ROS 2 driver as a Git submodule
+- [x] Validate Pico-to-L298N pin assignments on the robot
+- [x] Build and run the four-motor bring-up firmware on the robot
 - [ ] Test LD19 locally on development laptop
 - [ ] Investigate LiDAR measurements and filtering
 - [ ] Integrate IMU
 - [ ] Design Pico ↔ Pi communication protocol
 - [ ] Implement Pico IMU acquisition
-- [ ] Implement low-level motor control
+- [ ] Implement closed-loop wheel control
 - [ ] Implement ROS hardware interface
 - [ ] Implement state estimation
 - [ ] Deploy ROS stack to Raspberry Pi 3 B
@@ -440,6 +446,8 @@ These should be resolved based on experiments and actual system requirements rat
 ## 10. Maintenance Note
 
 This document is intended as a **living architecture reference**.
+
+Development takes place on a dedicated development branch. Changes are merged into `main` after their implementation has been verified for its intended scope; `main` records the verified project baseline alongside the documented plans for further work.
 
 When returning to the project after a longer break, start here to recover the intended system structure.
 

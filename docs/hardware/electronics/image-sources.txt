@@ -1,0 +1,23 @@
+Image sources for pico-l298n-wiring.png
+
+Adapted wiring illustration: Peter Höhn and contributors, 2026.
+Composite license: Creative Commons Attribution-ShareAlike 4.0 International
+https://creativecommons.org/licenses/by-sa/4.0/
+
+Raspberry Pi Pico pinout graphic
+Creator: raspberry.tips
+Source: https://raspberry.tips/en/raspberry-pi-pico-pinout
+License: Creative Commons Attribution 4.0 International
+https://creativecommons.org/licenses/by/4.0/
+Changes: resized and incorporated into the wiring layout; connection lines and annotations added.
+
+L298N motor driver artwork
+Original title: Dosmotorsl298n.jpg
+Creator: Quel.soler, 2018
+Source: https://commons.wikimedia.org/wiki/File:Dosmotorsl298n.jpg
+License: Creative Commons Attribution-ShareAlike 4.0 International
+https://creativecommons.org/licenses/by-sa/4.0/
+Changes: module cropped from the original image, resized, and used twice; new wiring and annotations added.
+
+Full license: https://creativecommons.org/licenses/by-sa/4.0/legalcode.en
+See THIRD_PARTY_NOTICES.md and LICENSING.md at the repository root for the complete licensing scope.
